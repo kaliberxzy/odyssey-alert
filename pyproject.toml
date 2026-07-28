@@ -1,0 +1,15 @@
+[project]
+name = "odyssey-alert"
+version = "0.1.0"
+description = "Tool that periodically checks if a new show date has been added to Cinemark's 70mm IMAX of The Odyssey"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "playwright>=1.61.0",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "schedule>=1.2.2",
+]
+
+[tool.uv]
+native-tls = true
