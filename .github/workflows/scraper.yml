@@ -2,12 +2,11 @@ name: Check Odyssey Showtimes
 
 on:
   schedule:
-    # Runs every 5 minutes
-    - cron: "*/5 * * * *"
-  workflow_dispatch: # allows you to run it manually from GitHub
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 permissions:
-  contents: write # needed to push the updated known_dates.json
+  contents: write
 
 jobs:
   scrape:
@@ -24,19 +23,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
           uv venv
-          uv pip install -r requirements.txt   # or use uv sync if you have pyproject.toml
-          uv pip install playwright
+          source .venv/bin/activate
+          uv pip install playwright python-dotenv schedule requests
           playwright install --with-deps chromium
 
-      - name: Run scraper (single check)
+      - name: Run scraper
         env:
           ZIP_CODE: ${{ secrets.ZIP_CODE }}
           TARGET_URL: ${{ secrets.TARGET_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           source .venv/bin/activate
