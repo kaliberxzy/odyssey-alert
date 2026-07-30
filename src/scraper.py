@@ -8,25 +8,30 @@ TARGET_URL = os.getenv("TARGET_URL")
 
 def get_show_dates() -> set[str]:
     with sync_playwright() as p:
-        # slow_mo=200 prevents race conditions; headless=True for production
-        browser = p.chromium.launch(headless=False, slow_mo=200)
+        # Use slow_mo to mimic human interaction and avoid race conditions
+        browser = p.chromium.launch(headless=True, slow_mo=200)
         page = browser.new_page()
         page.goto(TARGET_URL, wait_until="domcontentloaded")
 
-        # Fill and fire required events
+        # Fill and fire events (some sites require them)
         page.fill("#ZipSearchText", ZIP_CODE)
         page.evaluate("document.getElementById('ZipSearchText').dispatchEvent(new Event('change', {bubbles: true}))")
         page.evaluate("document.getElementById('ZipSearchText').dispatchEvent(new Event('blur', {bubbles: true}))")
 
-        # Click the submit button (reliable)
+        # Click the visible submit button – this is reliable
         page.click("input[value='Search by ZIP Code']")
 
-        # Wait for the carousel to load all dates
-        # 10 seconds is more than enough (debug worked with 5s)
+        # Wait 10 seconds for the carousel to fully load
+        # (this matched the debug version that never failed)
         page.wait_for_timeout(10000)
 
-        # Collect all date links
-        links = page.query_selector_all("#showdatesCarousel a.showdate-link")
-        show_dates = {link.get_attribute("data-datevalue") for link in links if link.get_attribute("data-datevalue")}
+        # Now collect all date links – even if a navigation happened, the page is settled
+        try:
+            links = page.query_selector_all("#showdatesCarousel a.showdate-link")
+            show_dates = {link.get_attribute("data-datevalue") for link in links if link.get_attribute("data-datevalue")}
+        except Exception:
+            # If the context is destroyed (rare with the fixed wait), return empty set
+            show_dates = set()
+
         browser.close()
         return show_dates
