@@ -41,12 +41,13 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           source .venv/bin/activate
+          cd src                 # <-- go into src folder
           python main.py --once
 
       - name: Commit updated known_dates.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add known_dates.json
+          git add src/known_dates.json   # <-- path is inside src/
           git diff --staged --quiet || git commit -m "Update known dates [skip ci]"
           git push
